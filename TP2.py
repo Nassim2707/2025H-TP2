@@ -1,12 +1,13 @@
 """
 TP2 : Gestion d'une base de données d'un hôpital
 
-Groupe de laboratoire : XX
-Numéro d'équipe :  YY
-Noms et matricules : Nom1 (Matricule1), Nom2 (Matricule2)
+Groupe de laboratoire : 01
+Numéro d'équipe :  01
+Noms et matricules : Nassim Saoudi (2384728), Wassim Soumazane (Matricule2)
 """
 
 import csv
+import copy
 
 ########################################################################################################## 
 # PARTIE 1 : Initialisation des données (2 points)
@@ -29,7 +30,19 @@ def load_csv(csv_path):
     patients_dict = {}
 
     # TODO : Écrire votre code ici
-
+    csv_path = "/Users/nassi/OneDrive/Documents/GitHub/2025H-TP2/subjects.csv"
+    with open(csv_path, 'r', newline = '', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader :
+            participant_id = row ['participant_id']
+            patients_dict[participant_id] = { 
+            "age": row['age'],
+            "sex": row['sex'],
+            "height": row['height'],
+            "weight": row['weight'],
+            "date_of_scan": row['date_of_scan'],
+            "pathology": row['pathology']
+            }
 
     # Fin du code
 
@@ -59,7 +72,36 @@ def load_multiple_csv(csv_path1, csv_path2):
     patients_dict = {}
 
     # TODO : Écrire votre code ici
+    csv_path1 = "/Users/nassi/OneDrive/Documents/GitHub/2025H-TP2/subjects.csv"
+    csv_path2 = "/Users/nassi/OneDrive/Documents/GitHub/2025H-TP2/extra_subjects.csv"
+    with open(csv_path1, 'r', newline = '', encoding='utf-8') as csvfile1,\
+    open(csv_path2, 'r', newline= '', encoding= 'utf-8') as csvfile2:
+        
+        reader1 = csv.DictReader(csvfile1)
+        reader2 = csv.DictReader(csvfile2)
 
+        for row in reader1 :
+            participant_id = row ['participant_id']
+            patients_dict[participant_id] = { 
+            "age": row['age'],
+            "sex": row['sex'],
+            "height": row['height'],
+            "weight": row['weight'],
+            "date_of_scan": row['date_of_scan'],
+            "pathology": row['pathology']
+            }
+
+            for row in reader2 :
+                participant_id = row['participant_id']
+                if participant_id not in patients_dict:
+                    patients_dict[participant_id] = { 
+            "age": row['age'],
+            "sex": row['sex'],
+            "height": row['height'],
+            "weight": row['weight'],
+            "date_of_scan": row['date_of_scan'],
+            "pathology": row['pathology']
+            }
 
     # Fin du code
 
@@ -87,7 +129,14 @@ def update_convention(old_convention_dict):
     new_convention_dict = {}
 
     # TODO : Écrire votre code ici
-
+    for patient_id, data in old_convention_dict.items():
+        new_data = data.copy()
+        if data["date_of_scan"] != "n/a":
+            new_data["date_of_scan"] = new_data["date_of_scan"].replace("-", "/")
+        else:
+            new_data["date_of_scan"] = None
+    
+        new_convention_dict[patient_id] = new_data
 
     # Fin du code
 
@@ -117,8 +166,19 @@ def fetch_candidates(patients_dict):
     candidates_list = []
 
     # TODO : Écrire votre code ici
+    for participant_id, data in patients_dict.items():
+        sex= data["sex"]
+        age_value = (data["age"])
+        height_value = data["height"]
 
+        if age_value == "n/a" or height_value == "n/a":
+            continue
 
+        age = int(age_value)
+        height = int(height_value)
+        
+        if sex == "F" and 25 <= age <= 32 and height > 170:
+            candidates_list = candidates_list + [participant_id]
     # Fin du code
 
     return candidates_list
@@ -149,6 +209,36 @@ def fetch_statistics(patients_dict):
     metrics = {'M':{}, 'F':{}}
 
     # TODO : Écrire votre code ici
+    data = {'M': {'age': [], 'height': [], 'weight': []},
+    'F': {'age': [], 'height': [], 'weight': []}}
+
+    for patient_id, info in patients_dict.items():
+        sex = info['sex']
+        age = info["age"]
+        height = info["height"]
+        weight = info["weight"]
+        
+        if age != "n/a" and height != "n/a" and weight != "n/a":
+            data[sex]['age'] = data[sex]['age'] + [int(age)]
+            data[sex]['height'] = data[sex]['height'] + [int(height)]
+            data[sex]['weight'] = data[sex]['weight'] + [int(weight)]
+    
+    for sex in ['M', 'F']:
+        for metric in ['age', 'height', 'weight']:
+            values = data[sex][metric]
+            
+            if values:
+               mean_value = round(sum(values) / len(values), 2)
+
+               if len(values) > 1:
+                   variance = sum((x - mean_value) ** 2 for x in values) / (len(values) - 1)
+                   std_value = round(variance ** 0.5, 2)
+               else :
+                   std_value = 0
+               metrics[sex][metric] = {"mean": mean_value, "std": std_value}
+
+            else:
+                metrics[sex][metric] = {"mean": None, "std": None}
 
 
     # Fin du code
@@ -177,6 +267,18 @@ def create_csv(metrics):
     paths_list = []
 
     # TODO : Écrire votre code ici
+    files = {"F": "F_metrics.csv", "M": "M_metrics.csv"}
+
+    for sex, filename in files.items():
+        path = filename
+        paths_list.append(path)
+
+        with open(path, mode= 'w', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
+            writer.writerow(["stats", "age", "height", "weight"])
+            writer.writerow(["mean", metrics[sex]["age"]["mean"], metrics[sex]["height"]["mean"], metrics[sex]["weight"]["mean"]])
+            writer.writerow(["std", metrics[sex]["age"]["std"], metrics[sex]["height"]["std"], metrics[sex]["weight"]["std"]])
+
 
 
     # Fin du code
