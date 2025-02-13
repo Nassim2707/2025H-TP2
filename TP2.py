@@ -91,17 +91,17 @@ def load_multiple_csv(csv_path1, csv_path2):
             "pathology": row['pathology']
             }
 
-            for row in reader2 :
-                participant_id = row['participant_id']
-                if participant_id not in patients_dict:
-                    patients_dict[participant_id] = { 
-            "age": row['age'],
-            "sex": row['sex'],
-            "height": row['height'],
-            "weight": row['weight'],
-            "date_of_scan": row['date_of_scan'],
-            "pathology": row['pathology']
-            }
+        for row in reader2 :
+            participant_id = row['participant_id']
+            if participant_id not in patients_dict:
+                patients_dict[participant_id] = { 
+                "age": row['age'],
+                "sex": row['sex'],
+                "height": row['height'],
+                "weight": row['weight'],
+                "date_of_scan": row['date_of_scan'],
+                "pathology": row['pathology']
+                }
 
     # Fin du code
 
